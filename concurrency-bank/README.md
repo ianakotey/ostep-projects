@@ -179,3 +179,25 @@ Closing balance: 4500
 ```
 
 Note that depending on the order in which the OS schedules threads, your output may vary.
+
+## Testing
+
+You will be provided with basic tests to ensure your code conforms to the instructions provided. You will be able to run these tests in a similar manner to the previous project. Note that these tests are not correctness tests, i.e. the tests do not check that you use concurrency, or that your use of concurrency is correct. Note that these tests are not the only tests used in grading, and the correctness of your program will heavily affect your score.
+
+To access the tests, you may either:
+
+1. Change your remote origin to the forked repos by running the
+following commands (in your projects folder).
+
+- git remote set-url origin <https://github.com/ianakotey/ostep-projects/>
+- git pull
+
+2. Cloning the forked repository.
+
+- Git clone <https://github.com/ianakotey/ostep-projects/>
+
+## Grading Rubric
+
+- Passes provided tests (25%)
+- Passes correctness tests (55%)
+- Reasonable coding attempt (20%)
