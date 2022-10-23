@@ -58,7 +58,7 @@ To ensure correctness, you will need to synchronize access to the couple's bank 
 
 You'll need to learn how to use a few library routines from the C standard library (often called  **libc** ), well as the POSIX thread (Pthread) library for thread management to implement the source code for this program, which we'll assume is in a file called  **bank.c**.
 
-All C code is automatically linked with the C library, which is full of useful functions you can call to implement your program. You will have to tell the compiler to link the pthread library to your code manually (hence, we pass the -lpthread, or -lpt) flag to the compiler. Learn more about the C library [here](https://en.wikipedia.org/wiki/C_standard_library) and perhaps [here](https://www-s.acm.illinois.edu/webmonkeys/book/c_guide/)[1](https://github.com/remzi-arpacidusseau/ostep-projects/tree/master/initial-utilities#myfootnote1). Learn more about the Pthreads library [here](https://docs.oracle.com/cd/E19120-01/open.solaris/816-5137/tlib-1/index.html).
+All C code is automatically linked with the C library, which is full of useful functions you can call to implement your program. You will have to tell the compiler to link the pthread library to your code manually (hence, we pass the -lpthread, or -lpt) flag to the compiler. Learn more about the C library [here](https://en.wikipedia.org/wiki/C_standard_library) and perhaps [here](https://www-s.acm.illinois.edu/webmonkeys/book/c_guide/)[1](https://github.com/remzi-arpacidusseau/ostep-projects/tree/master/initial-utilities#myfootnote1). Lelarn more about the Pthreads library [here](https://docs.oracle.com/cd/E19120-01/open.solaris/816-5137/tlib-1/index.html).
 
 For this project, we recommend using the following routines to do file input and output: **fopen()**, **fgets()**, **getline()**, and **fclose()**, as well as **pthread\_create** and **pthread\_join** for managing threads. Whenever you use a new function like this, the first thing you should do is read about it -- how else will you learn to use it properly?
 
@@ -179,3 +179,25 @@ Closing balance: 4500
 ```
 
 Note that depending on the order in which the OS schedules threads, your output may vary.
+
+## Testing
+
+You will be provided with basic tests to ensure your code conforms to the instructions provided. You will be able to run these tests in a similar manner to the previous project. Note that these tests are not correctness tests, i.e. the tests do not check that you use concurrency, or that your use of concurrency is correct. Note that these tests are not the only tests used in grading, and the correctness of your program will heavily affect your score.
+
+To access the tests, you may either:
+
+1. Change your remote origin to the forked repos by running the
+following commands (in your projects folder).
+
+- git remote set-url origin <https://github.com/ianakotey/ostep-projects/>
+- git pull
+
+2. Cloning the forked repository.
+
+- Git clone <https://github.com/ianakotey/ostep-projects/>
+
+## Grading Rubric
+
+- Passes provided tests (25%)
+- Passes correctness tests (55%)
+- Reasonable coding attempt (20%)
