@@ -17,8 +17,10 @@ import re
 
 from tempfile import NamedTemporaryFile
 
-regex = re.compile(r"test (\d{1,2}):.*(passed|failed).*$", re.MULTILINE)
+logging.getLogger().setLevel(logging.INFO)
 
+
+regex = re.compile(r"test (\d{1,2}):.*(passed|failed).*$", re.MULTILINE)
 
 
 transaction_data_pattern = re.compile(
@@ -27,7 +29,7 @@ transaction_data_pattern = re.compile(
 transaction_record_pattern = re.compile(
     r"^(?P<type>Deposit|Withdraw): (?P<amount>-{0,1}\d+), "
     r"User: (?P<user>Husband|Wife), "
-    r"(?:Account balance after: (?P<balance>-{0,1}\d+)|(?P<status>Transaction declined))$"
+    r"(?:Account balance after: (?P<balance>-{0,1}\d+)|(?P<status>Transaction (?:declined|failed)))$"
 )
 
 
@@ -317,8 +319,8 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
-            # Test 4: Declining valid transaction not allowed
-            case (x, y) if x.amount < balance and y.balance_after is None:
+            # Test 4: Negative transactions not allowed
+            case (x, y) if x.amount < 0 and y.balance_after is not None:
                 logging.error("Test 4 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -330,7 +332,7 @@ class TransactionTester:
             case (
                 TransactionData(TransactionType.WITHDRAWAL, _) as x,
                 y,
-            ) if x.amount < balance and y.balance_after != balance - x.amount:
+            ) if 0 <= x.amount < balance and y.balance_after != balance - x.amount:
                 logging.error("Test 5 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -339,11 +341,11 @@ class TransactionTester:
                 )
                 return False
 
-            # Test 5: Check for correct balance after deposit
+            # Test 6: Check for correct balance after deposit
             case (
-                TransactionData(TransactionType.DEPOSIT, _) as x,
+                TransactionData(TransactionType.DEPOSIT, a) as x,
                 y,
-            ) if y.balance_after != balance + x.amount:
+            ) if a > 0 and y.balance_after != balance + x.amount:
                 logging.error("Test 6 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -465,7 +467,9 @@ class TransactionTester:
 if __name__ == "__main__":
 
     file_name_1 = TransactionTester.create_test_file(2_000, perc_withdraw=0.6)
-    file_name_2 = TransactionTester.create_test_file(2_000, perc_withdraw=0.3)
+    file_name_2 = TransactionTester.create_test_file(
+        2_000, perc_withdraw=0.3, amount_range=range(-2000, 2000)
+    )
 
     print(
         TransactionTester.from_source(Path("../../bank.c")).run_and_test_output(
