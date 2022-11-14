@@ -12,7 +12,7 @@ from collections import deque
 from random import randint
 from subprocess import PIPE, Popen, TimeoutExpired
 from sys import stdout
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Sequence
 import re
 
 from tempfile import NamedTemporaryFile
@@ -20,16 +20,20 @@ from tempfile import NamedTemporaryFile
 logging.getLogger().setLevel(logging.INFO)
 
 
-regex = re.compile(r"test (\d{1,2}):.*(passed|failed).*$", re.MULTILINE)
+regex = re.compile(r"test (\d{1,2}):.*(?:passed|failed).*$", re.MULTILINE)
 
+opening_balance_patern = re.compile(r"^(?:Opening|Closing) balance: (?P<opening_balance>\d+)$", re.MULTILINE)
+closing_balance_patern = re.compile(r"^Closing balance: (?P<closing_balance>\d+)$", re.MULTILINE)
 
 transaction_data_pattern = re.compile(
-    r"^(?P<type>deposit|withdraw)+ (?P<amount>-{0,1}\d+)$"
+    r"^(?P<type>deposit|withdraw)+ (?P<amount>-?\d+)$"
 )
 transaction_record_pattern = re.compile(
-    r"^(?P<type>Deposit|Withdraw): (?P<amount>-{0,1}\d+), "
+    r"^(?P<type>Deposit|Withdraw): (?P<amount>-?\d+), "
     r"User: (?P<user>Husband|Wife), "
-    r"(?:Account balance after: (?P<balance>-{0,1}\d+)|(?P<status>Transaction (?:declined|failed)))$"
+    r"(?:Account balance after: (?P<balance>-?\d+)"
+    r"|(?:Transaction (?P<status>declined|failed)))$", 
+    re.MULTILINE
 )
 
 
@@ -191,21 +195,9 @@ class TransactionTester:
                             f"Invalid number of output lines: {len(out_lines)}"
                         )
                         return False
-                    case 2:
-                        return len(husband_queue) + len(
-                            wife_queue
-                        ) == 0 and out_lines == [
-                            f"Opening balance: {start_balance}",
-                            f"Closing balance: {start_balance}",
-                        ]
                     case _:
-
-                        out_queue = deque(
-                            TransactionRecord.from_iter(out_lines[1:-1])
-                        )
-
                         return self.verify_transactions(
-                            start_balance, husband_queue, wife_queue, out_queue
+                            start_balance, husband_queue, wife_queue, out_lines
                         )
 
             except TimeoutExpired:
@@ -217,15 +209,28 @@ class TransactionTester:
 
         return False
 
+
+
     def verify_transactions(
         self,
         start_balance: int,
         husband_queue: deque[TransactionData],
         wife_queue: deque[TransactionData],
-        out_queue: deque[TransactionRecord],
+        out_lines: Sequence[str],
     ) -> bool:
 
         balance: int = start_balance
+
+
+        if opening_match := re.match(opening_balance_patern, out_lines[0]):
+
+            if opening_balance := int(opening_match.group('opening_balance')) != balance:
+                logging.info(f"Start balance mismatch: found {start_balance}, expected {balance}")
+                return False
+
+        out_queue = deque(
+            TransactionRecord.from_iter(out_lines[1:-1])
+        )
 
         for transaction_record in out_queue:
             match transaction_record:
@@ -263,6 +268,12 @@ class TransactionTester:
                         )
                 case _:  # Somehow, an unknown user may show up
                     return False
+        
+        if closing_match := re.match(closing_balance_patern, out_lines[-1]):
+
+            if closing_balance := int(closing_match.group('closing_balance')) != balance:
+                logging.info(f"closing balance mismatch: found {closing_balance}, expected {balance}")
+                return False
 
         return True
 
