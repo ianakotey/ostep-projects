@@ -31,8 +31,6 @@ parser.add_argument("-nlw", "--num_lines_wife", type=int, default=100)
 
 args = parser.parse_args()
 
-print(args.n1)
-exit(0)
 
 if not (binary := Path("../../bank")).exists():
     print("bank executable does not exist")
