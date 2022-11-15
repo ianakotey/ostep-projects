@@ -1,0 +1,1 @@
+tests/correctness/test-bank-correct.py ./bank 500000 tests/assets/no_transactions_wel.txt /tmp/valid_trans_10000_0_500000.txt
