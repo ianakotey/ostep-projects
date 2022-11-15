@@ -110,7 +110,7 @@ Where:
 - &lt;A&gt;: int
 - &lt;U&gt;: Wife | Husband
 - &lt;S&gt;: Account balance after: int
-- &lt;F&gt;: Transaction failed
+- &lt;F&gt;: Transaction declined
 
 ### Example
 
