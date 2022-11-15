@@ -1,1 +1,1 @@
-./bank 300 300 tests/no_transactions.txt tests/no_transactions.txt tests/no_transactions.txt tests/no_transactions.txt
+./bank 300 300 tests/assets/no_transactions.txt tests/assets/no_transactions.txt tests/assets/no_transactions.txt tests/assets/no_transactions.txt

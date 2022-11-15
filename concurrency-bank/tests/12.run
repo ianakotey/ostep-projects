@@ -1,0 +1,1 @@
+./bank 400 tests/assets/no_transactions.txt tests/assets/negative_transaction.txt

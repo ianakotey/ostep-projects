@@ -1,3 +1,4 @@
 **/tests-out/*
-.vscode/settings.json
+**/.vscode/
 concurrency-bank/bank*
+**/*.pyc

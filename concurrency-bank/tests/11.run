@@ -1,0 +1,1 @@
+./bank 690 tests/assets/no_transactions.txt tests/assets/single_transaction.txt

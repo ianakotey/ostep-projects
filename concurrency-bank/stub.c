@@ -60,10 +60,11 @@ typedef struct __executeTransactionsStruct {
 
 void *parseTransactions( void *voidFileName );
 transaction createTransaction( char *transactionRecord );
-void *executeTransactions( void *voidExecuteTransactionsStruct );
+void *executeTransactions( void */* A void pointer to the executeTransactionsStruct struct. */
+voidExecuteTransactionsStruct );
 void processTransaction( account *transactingAccount, transaction *currentTransaction );
-int deposit( int amount );
-int withdraw( int amount );
+int deposit( void *account, int amount );
+int withdraw( void *account, int amount );
 
 
 
