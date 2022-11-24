@@ -1,1 +1,1 @@
-./bank 400 tests/assets/negative_transactions.txt tests/assets/no_transactions_wel.txt
+./bank 400 /tmp/Husband.txt /tmp/Wife.txt

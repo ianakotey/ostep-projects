@@ -1,0 +1,1 @@
+ln -sf $(pwd)/tests/assets/no_transactions_wel.txt /tmp/Husband.txt && ln -sf $(pwd)/tests/assets/no_transactions.txt /tmp/Wife.txt

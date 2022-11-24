@@ -1,1 +1,1 @@
-tests/correctness/test-bank-correct.py ./bank 1000000 /tmp/valid_trans_1000_0_1000000.txt tests/assets/no_transactions_wel.txt
+tests/correctness/test-bank-correct.py ./bank 1000000 /tmp/Husband.txt /tmp/Wife.txt
