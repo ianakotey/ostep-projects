@@ -281,8 +281,11 @@ class TransactionTester:
 
         if transaction_record.amount != transaction.amount:
             logging.error("Transaction amount mismatch")
+            logging.info(f"Current balance: {balance}")
             logging.info(f"Amount in record: {transaction_record.amount}")
             logging.info(f"Amount in transaction: {transaction.amount}")
+            logging.info(f"Transaction: {transaction}")
+            logging.info(f"Record: {transaction_record}")
             return False
 
         if (
@@ -291,6 +294,7 @@ class TransactionTester:
         ):
             logging.error(
                 f"Transaction amount negative ({transaction_record.amount}) yet not declined"
+                f"\nRecord: {transaction_record}"
             )
             return False
 
