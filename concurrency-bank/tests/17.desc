@@ -1,1 +1,3 @@
 Correctness test: multiple valid transactions (large sparse files)
+Due to the large number of transactions,
+it (as well as all upcoming tests) implicitly tests how well you set up your critical section.
