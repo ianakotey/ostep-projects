@@ -3,8 +3,8 @@
 # exit 1
 SCRIPT_PATH=$(dirname "$(realpath -s "$0")")
 o="/tmp/"
-f1="mixed_trans_19_1.txt"
-f2="mixed_trans_19_2.txt"
+f1="mixed_trans_19_20_1.txt"
+f2="mixed_trans_19_20_2.txt"
 
 if ! [[ -w $o$f1 ]]; then
     echo "Generating random file for testing"
