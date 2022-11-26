@@ -233,42 +233,37 @@ class TransactionTester:
         )
 
         for transaction_record in out_queue:
+
             match transaction_record:
                 case trans_r if trans_r.user == "Husband":
                     try:
-                        husband_trans = husband_queue.popleft()
+                        current_trans = husband_queue.popleft()
                     except IndexError:
                         return False
-
-                    if not self.verify_transaction(
-                        balance, trans_r, husband_trans
-                    ):
-                        return False
-                    else:
-                        balance = (
-                            trans_r.balance_after
-                            if trans_r.balance_after is not None
-                            else balance
-                        )
 
                 case trans_r if trans_r.user == "Wife":
                     try:
-                        wife_trans = wife_queue.popleft()
+                        current_trans = wife_queue.popleft()
                     except IndexError:
                         return False
-                    if not self.verify_transaction(
-                        balance, trans_r, wife_trans
-                    ):
-                        return False
-                    else:
-                        balance = (
-                            trans_r.balance_after
-                            if trans_r.balance_after is not None
-                            else balance
-                        )
+
                 case _:  # Somehow, an unknown user may show up
                     return False
+
+            if not self.verify_transaction(
+                balance, trans_r, current_trans
+            ):
+                return False
+            else:
+                balance = (
+                    trans_r.balance_after
+                    if trans_r.balance_after is not None
+                    else balance
+                )
         
+
+
+
         if closing_match := re.match(closing_balance_patern, out_lines[-1]):
 
             if closing_balance := int(closing_match.group('closing_balance')) != balance:
@@ -301,7 +296,7 @@ class TransactionTester:
 
         match (transaction, transaction_record):
             # Test 1: Amount match
-            case (x, y) if x.amount != y.amount:
+            case (td, tr) if td.amount != tr.amount:
                 logging.error("Test 1 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -309,8 +304,9 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
+                
             # Test 2: Negative amounts were rejected
-            case (x, y) if x.amount < 0 and y.balance_after is not None:
+            case (td, tr) if td.amount < 0 and tr.balance_after is not None:
                 logging.error("Test 2 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -318,11 +314,12 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
+                
             # Test 3: No underflow allowed
             case (
-                TransactionData(TransactionType.WITHDRAWAL, _) as x,
-                y,
-            ) if x.amount > balance and y.balance_after is not None:
+                TransactionData(TransactionType.WITHDRAWAL, _) as td,
+                tr,
+            ) if td.amount > balance and tr.balance_after is not None:
                 logging.error("Test 3 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -330,8 +327,9 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
+                
             # Test 4: Negative transactions not allowed
-            case (x, y) if x.amount < 0 and y.balance_after is not None:
+            case (td, tr) if td.amount < 0 and tr.balance_after is not None:
                 logging.error("Test 4 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
@@ -341,28 +339,30 @@ class TransactionTester:
                 return False
             # Test 5: Check for correct balance after withdrawal
             case (
-                TransactionData(TransactionType.WITHDRAWAL, _) as x,
-                y,
-            ) if 0 <= x.amount < balance and y.balance_after != balance - x.amount:
+                TransactionData(TransactionType.WITHDRAWAL, _) as td,
+                tr,
+            ) if 0 <= td.amount < balance and tr.balance_after != balance - td.amount:
                 logging.error("Test 5 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
                 logging.info(
                     f"Transaction record being verified: {transaction_record}"
                 )
+                logging.info(f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
                 return False
 
             # Test 6: Check for correct balance after deposit
             case (
-                TransactionData(TransactionType.DEPOSIT, a) as x,
-                y,
-            ) if a > 0 and y.balance_after != balance + x.amount:
+                TransactionData(TransactionType.DEPOSIT, a) as td,
+                tr,
+            ) if a > 0 and tr.balance_after != balance + td.amount:
                 logging.error("Test 6 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
                 logging.info(
                     f"Transaction record being verified: {transaction_record}"
                 )
+                logging.info(f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
                 return False
 
         return True
