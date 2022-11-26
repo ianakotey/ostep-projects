@@ -3,7 +3,7 @@
 # exit 1
 SCRIPT_PATH=$(dirname "$(realpath -s "$0")")
 o="/tmp/"
-f="valid_trans_1000_0_1000000.txt"
+f="valid_trans_15.txt"
 
 if ! [[ -w $o$f ]]; then
     echo "Generating random file for testing"
