@@ -12,12 +12,12 @@ from collections import deque
 from random import randint
 from subprocess import PIPE, Popen, TimeoutExpired
 from sys import stdout
-from typing import Iterable, Optional, Sequence
+from typing import Callable, Iterable, Optional, Sequence
 import re
 
 from tempfile import NamedTemporaryFile
 
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.WARNING)
 
 
 regex = re.compile(r"test (\d{1,2}):.*(?:passed|failed).*$", re.MULTILINE)
@@ -173,7 +173,8 @@ class TransactionTester:
                 raise ValueError("Code failed to compile") from exc
 
     def run_and_test_output(
-        self, start_balance: int, husband: Path, wife: Path
+        self, start_balance: int, husband: Path, wife: Path,
+        custom_check: Callable[[Sequence[str]], bool] = lambda _: True
     ) -> bool:
         husband_queue = deque(filter(None, TransactionData.from_file(husband)))
         wife_queue = deque(filter(None, TransactionData.from_file(wife)))
@@ -196,18 +197,20 @@ class TransactionTester:
                         )
                         return False
                     case _:
-                        return self.verify_transactions(
+                        if not self.verify_transactions(
                             start_balance, husband_queue, wife_queue, out_lines
-                        )
+                        ):
+                            return False
 
             except TimeoutExpired:
                 logging.critical("Timed out on test")
+                return False
 
         logging.info(
             f"test: {self.binary} {start_balance} {husband} {wife} completed"
         )
 
-        return False
+        return custom_check(out_lines)
 
 
 

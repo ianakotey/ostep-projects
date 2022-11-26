@@ -6,7 +6,7 @@ import transactionutils
 
 import logging
 
-logging.getLogger().setLevel(logging.INFO)
+logging.getLogger().setLevel(logging.WARNING)
 
 parser = argparse.ArgumentParser()
 
