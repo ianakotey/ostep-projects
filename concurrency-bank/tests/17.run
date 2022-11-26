@@ -1,0 +1,1 @@
+tests/correctness/test-bank-correct.py ./bank 500000 /tmp/Husband.txt /tmp/Wife.txt
