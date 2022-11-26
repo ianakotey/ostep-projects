@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 f_args = {
     "n_lines": args.n_lines,
-    "amount_range": range( *list( map( lambda x: int(x), args.amount_range.split( ":" ) ) ) ),
+    "amount_range": range( *list( map( lambda x: int(x), args.amount_range.lstrip('\\').split( ":" ) ) ) ),
     "perc_empty": args.perc_empty,
     "perc_withdraw": args.perc_withdraw,
     "perc_withdraw": args.perc_withdraw,
