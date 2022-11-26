@@ -1,1 +1,1 @@
-tests/correctness/test-bank-correct.py ./bank 1000000 /tmp/Husband.txt /tmp/Wife.txt
+tests/correctness/test-bank-correct.py ./bank 1000000 /tmp/Husband.txt /tmp/Wife.txt 2>&1
