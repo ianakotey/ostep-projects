@@ -374,60 +374,6 @@ class TransactionTester:
 
         return True
 
-    def run_tests(self):
-        if not self.binary.exists():
-            logging.critical("binary does not exist passed")
-            return
-
-        self.run_basic_tests()
-
-    # Todo: cleanup and stuff
-    # Critical: Violation of single responsibility
-    def run_basic_tests(self):
-        for t_num in range(1, 11):  # TODO: Remove magic numbers
-            with Popen(
-                f"""./test-bank.sh -t {t_num}""",
-                text=True,
-                shell=True,
-                stdout=PIPE,
-                cwd=self.binary.parent,
-                stderr=PIPE,
-            ) as test_runner:  #
-                logging.debug(f"Executed basic test #{t_num}")
-                try:
-                    out, _ = test_runner.communicate(timeout=20)
-                    out_lines = out.splitlines()
-                    # print( out, file=stdout )
-                    # print( _, file=stdout )
-
-                    if match := regex.match(out):
-                        num, status = match.group(1, 2)
-
-                        if status == "passed":
-                            logging.info(f"Passed basic test {num}/10")
-                            logging.debug(
-                                f"Pass message: {'None' if len(out_lines) == 0 else out_lines[0]}"
-                            )
-                            # solo_test[ 'Passed' ] += 1
-                            # solo_test[ 'Remarks' ].append( f"Passed test {num}" )
-                        else:
-                            logging.error(f"Failed basic test {num}/10")
-                            logging.debug(
-                                f"Failure message: {'None' if len(out_lines) == 0 else out_lines[0]}"
-                            )
-                            # solo_test[ 'Failed' ] += 1
-                            # solo_test[ 'Remarks' ].append( f"Failed test {num}" )
-                    else:
-                        # other possible failure
-                        logging.error(f"Failed basic test {t_num}/10")
-                        # unnecessary allocation in splitlines, I know
-                        logging.debug(
-                            f"Failure message: {'None' if len(out_lines) == 0 else out_lines[0]}"
-                        )
-
-                except TimeoutExpired:
-                    logging.critical(f"Timed out on test {t_num}/10")
-                    pass
 
     def test_random_input(
         self,
