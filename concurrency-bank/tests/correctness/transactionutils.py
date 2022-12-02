@@ -22,8 +22,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 regex = re.compile(r"test (\d{1,2}):.*(?:passed|failed).*$", re.MULTILINE)
 
-opening_balance_patern = re.compile(r"^(?:Opening|Closing) balance: (?P<opening_balance>\d+)$", re.MULTILINE)
-closing_balance_patern = re.compile(r"^Closing balance: (?P<closing_balance>\d+)$", re.MULTILINE)
+opening_balance_patern = re.compile(
+    r"^(?:Opening|Closing) balance: (?P<opening_balance>\d+)$", re.MULTILINE)
+closing_balance_patern = re.compile(
+    r"^Closing balance: (?P<closing_balance>\d+)$", re.MULTILINE)
 
 transaction_data_pattern = re.compile(
     r"^(?P<type>deposit|withdraw)+ (?P<amount>-?\d+)$"
@@ -32,7 +34,7 @@ transaction_record_pattern = re.compile(
     r"^(?P<type>Deposit|Withdraw): (?P<amount>-?\d+), "
     r"User: (?P<user>Husband|Wife), "
     r"(?:Account balance after: (?P<balance>-?\d+)"
-    r"|(?:Transaction (?P<status>declined|failed)))$", 
+    r"|(?:Transaction (?P<status>declined|failed)))$",
     re.MULTILINE
 )
 
@@ -131,7 +133,8 @@ class TransactionTester:
                 if not loc.exists():
                     raise ValueError("Binary output location does not exist")
                 if not loc.is_dir():
-                    raise ValueError("Binary output location cannot be a file!")
+                    raise ValueError(
+                        "Binary output location cannot be a file!")
 
         with Popen(
             [
@@ -174,7 +177,7 @@ class TransactionTester:
 
     def run_and_test_output(
         self, start_balance: int, husband: Path, wife: Path,
-        custom_check: Callable[[Sequence[str]], bool] = lambda _: True
+        custom_check: Callable[[list[TransactionRecord]], bool] = lambda _: True
     ) -> bool:
         husband_queue = deque(filter(None, TransactionData.from_file(husband)))
         wife_queue = deque(filter(None, TransactionData.from_file(wife)))
@@ -198,7 +201,8 @@ class TransactionTester:
                         return False
                     case _:
                         if not self.verify_transactions(
-                            start_balance, husband_queue, wife_queue, out_lines
+                            start_balance, husband_queue, wife_queue, out_lines,
+                            custom_check
                         ):
                             return False
 
@@ -206,13 +210,12 @@ class TransactionTester:
                 logging.critical("Timed out on test")
                 return False
 
-        logging.info(
-            f"test: {self.binary} {start_balance} {husband} {wife} completed"
+
+        logging.debug(
+            f"test: {self.binary} {start_balance} {husband} {wife} completed sucessfully"
         )
 
-        return custom_check(out_lines)
-
-
+        return True
 
     def verify_transactions(
         self,
@@ -220,6 +223,8 @@ class TransactionTester:
         husband_queue: deque[TransactionData],
         wife_queue: deque[TransactionData],
         out_lines: Sequence[str],
+        custom_check: Callable[[list[TransactionRecord]], bool] = lambda _: True
+
     ) -> bool:
 
         balance: int = start_balance
@@ -228,7 +233,8 @@ class TransactionTester:
         if opening_match := re.match(opening_balance_patern, out_lines[0]):
 
             if opening_balance := int(opening_match.group('opening_balance')) != balance:
-                logging.info(f"Start balance mismatch: found {start_balance}, expected {balance}")
+                logging.info(
+                    f"Start balance mismatch: found {start_balance}, expected {balance}")
                 return False
 
         out_queue = deque(
@@ -263,14 +269,20 @@ class TransactionTester:
                     if trans_r.balance_after is not None
                     else balance
                 )
-        
 
+        if (remaining := (len(husband_queue) + len(wife_queue))) != 0:
+            logging.error(f"{remaining} transactions unprocessed")
+            return False
 
+        if not custom_check(list(out_queue)):
+            logging.error("Concurency test failed")
+            return False
 
         if closing_match := re.match(closing_balance_patern, out_lines[-1]):
 
             if closing_balance := int(closing_match.group('closing_balance')) != balance:
-                logging.info(f"closing balance mismatch: found {closing_balance}, expected {balance}")
+                logging.info(
+                    f"closing balance mismatch: found {closing_balance}, expected {balance}")
                 return False
 
         return True
@@ -311,7 +323,7 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
-                
+
             # Test 2: Negative amounts were rejected
             case (td, tr) if td.amount < 0 and tr.balance_after is not None:
                 logging.error("Test 2 failed!")
@@ -321,7 +333,7 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
-                
+
             # Test 3: No underflow allowed
             case (
                 TransactionData(TransactionType.WITHDRAWAL, _) as td,
@@ -334,7 +346,7 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
-                
+
             # Test 4: Negative transactions not allowed
             case (td, tr) if td.amount < 0 and tr.balance_after is not None:
                 logging.error("Test 4 failed!")
@@ -355,7 +367,8 @@ class TransactionTester:
                 logging.info(
                     f"Transaction record being verified: {transaction_record}"
                 )
-                logging.info(f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
+                logging.info(
+                    f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
                 return False
 
             # Test 6: Check for correct balance after deposit
@@ -369,11 +382,11 @@ class TransactionTester:
                 logging.info(
                     f"Transaction record being verified: {transaction_record}"
                 )
-                logging.info(f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
+                logging.info(
+                    f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
                 return False
 
         return True
-
 
     def test_random_input(
         self,
