@@ -37,3 +37,37 @@ function get_test_score() {
 
 }
 
+function run_test() {
+    local test_folder=$1
+    local test_num=$2
+    local name=$3
+
+    local old_folder=$(pwd)
+
+    if ! cd "$test_folder"; then
+        echo "Warning: unable to move to test folder. Aborting test for $name"
+        return
+    fi
+
+    echo -n "Running test $test_num for $name..."
+    local output=$("$test_folder"/test-bank.sh -t "$test_num")
+    local test_rc=$?
+
+    if [[ $test_rc -eq 0 ]]; then
+        echo passed
+        cd "$old_folder" || return 0
+        return 0
+    else
+        echo failed
+        cd "$old_folder" || return 1
+        return 1
+    fi
+
+}
+    fi
+
+    echo failed
+    cd "$old_folder" || return 1
+
+}
+
