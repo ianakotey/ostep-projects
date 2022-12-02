@@ -21,3 +21,19 @@ else
 fi
 
 log_file="$out_dir"/result.log
+
+function get_test_score() {
+    local score=$1
+    if [[ $score -ge 1 && $score -le 10 ]]; then
+        echo 25
+    elif [[ $score -ge 11 && $score -le 18 ]]; then
+        echo 55
+    elif [[ $score -eq 19 ]]; then
+        echo 110
+    else
+        echo 0
+        return 1
+    fi
+
+}
+
