@@ -8,12 +8,12 @@ f2="mixed_trans_19_20_2.txt"
 
 if ! [[ -w $o$f1 ]]; then
     echo "Generating random file for testing"
-    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f1 -o $o -n 10000000 -r "\-50000:15000" -pe 0.00 -pw 0.30
+    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f1 -o $o -n 10000000 -r "\-50000:1500" -pe 0.00 -pw 0.30
 fi
 
 if ! [[ -w $o$f2 ]]; then
     echo "Generating random file for testing"
-    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f2 -o $o -n 10000000 -r "\-50000:15000" -pe 0.00 -pw 0.70
+    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f2 -o $o -n 10000000 -r "\-50000:1500" -pe 0.00 -pw 0.70
 fi
 
 ln -sf $o$f1 /tmp/Husband.txt
