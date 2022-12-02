@@ -21,7 +21,7 @@ parser.add_argument("-c", "--custom", action="store_true")
 args = parser.parse_args()
 
 
-files: tuple[Path] = tuple(
+files: tuple[Path,...] = tuple(
     map(lambda file: file.absolute(), (args.binary, args.husband, args.wife))
 )
 
