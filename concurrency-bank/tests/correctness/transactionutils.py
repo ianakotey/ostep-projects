@@ -17,7 +17,7 @@ import re
 
 from tempfile import NamedTemporaryFile
 
-logging.getLogger().setLevel(logging.WARNING)
+logging.getLogger().setLevel(logging.INFO)
 
 
 regex = re.compile(r"test (\d{1,2}):.*(?:passed|failed).*$", re.MULTILINE)
