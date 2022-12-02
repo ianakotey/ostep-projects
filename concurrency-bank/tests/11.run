@@ -1,1 +1,1 @@
-./bank 690 /tmp/Husband.txt /tmp/Wife.txt
+./bank 690 Husband.txt Wife.txt
