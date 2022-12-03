@@ -23,7 +23,9 @@ fi
 global_log="$out_dir/all.log"
 global_scores="$out_dir/all.csv"
 
-csv_header="name, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19, Total"
+penalty=10
+
+csv_header="name, Compiled correctly, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19, Total"
 
 function get_test_score() {
     local score=$1
@@ -97,9 +99,20 @@ function grade_submission() {
     # compile here
     compile_out=$(gcc "$src_file" -Wall -Werror --output "$test_folder"/bank 2>&1)
     local compile_stat=$?
+    local compile_ok=$(echo $compile_out | wc -l)
+
     if [ $compile_stat -ne 0 ]; then
-        echo "Warning: could not compile" $"$src_file" ": Return code: $compile_stat" | tee -a "$global_log" "$local_log"
+        echo "Warning: could not compile $(basename $src_file): Return code: $compile_stat" | tee -a "$global_log" "$local_log"
         echo "$compile_out" | tee -a "$local_log"
+        record="$record, N"
+
+    elif [[ $compile_ok -ne 0  ]]; then
+        echo "Warning: $(basename $src_file) compiled with some warnings"
+        echo "$compile_out" | tee -a "$local_log"
+        record="$record, N"
+    else
+        echo "Info: Code compiled successfully" | tee -a "$local_log" "$global_log"
+        record="$record, Y"
     fi
 
     for n in {1..19}; do
@@ -118,10 +131,19 @@ function grade_submission() {
 
     done
 
+    if [[ $compile_ok -ne 0  ]]; then
+        local penalized_score=$(echo "scale=2; $test_result - $penalty" | bc -l)
+        if [[ $(echo "scale=2; $penalized_score < 0" | bc -l) -eq 1 ]]; then
+            score=0
+        else
+            score=$penalized_score
+        fi
+    fi
+
     record="$record, $score"
+    echo "$record" >> "$global_scores"
 
     echo "$score" > "$out_dir/$name.score"
-    echo "$record" >> "$global_scores"
 
     echo "Final score: $score" | tee -a "$local_log"
 

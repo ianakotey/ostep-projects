@@ -41,7 +41,7 @@ def verify_concurrency(output: list[transactionutils.TransactionRecord]) -> bool
 
 
 if args.custom:
-    logging.info(f"Using multithreaded analyzer")
+    logging.debug(f"Using multithreaded analyzer")
     validator = verify_concurrency
 else:
     validator = verify_concurrency_nop
