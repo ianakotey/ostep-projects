@@ -97,7 +97,7 @@ function grade_submission() {
     rm "$test_folder"/bank 2> /dev/null
 
     # compile here
-    compile_out=$(gcc "$src_file" -Wall -Werror --output "$test_folder"/bank 2>&1)
+    compile_out=$(gcc "$src_file" -Wall --output "$test_folder"/bank 2>&1)
     local compile_stat=$?
     local compile_ok=$(echo $compile_out | wc -l)
 
