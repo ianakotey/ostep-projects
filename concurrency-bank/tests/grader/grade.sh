@@ -90,6 +90,11 @@ function grade_submission() {
 
     echo "Beginning grading for $name" | tee -a "$local_log" >> "$global_log"
 
+    if [[ -f "$out_dir/$name.done" ]]; then
+        echo "Skipping already completed test for $name" | tee -a "$global_log"
+        return 0
+    fi
+
     rm "$out_dir/$name.output" 2> /dev/null
     rm "$out_dir/$name.log" 2> /dev/null
 
@@ -146,6 +151,8 @@ function grade_submission() {
     echo "$score" > "$out_dir/$name.score"
 
     echo "Final score: $score" | tee -a "$local_log"
+
+    touch "$out_dir/$name.done"
 
 }
 
