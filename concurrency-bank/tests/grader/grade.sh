@@ -1,4 +1,3 @@
-
 if [[ -z $1 ]]; then
     echo "Source directory unset: Using cwd"
     src_dir="$(realpath -s .)"
@@ -24,7 +23,7 @@ fi
 global_log="$out_dir/all.log"
 global_scores="$out_dir/all.csv"
 
-csv_header="name, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19"
+csv_header="name, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19, Total"
 
 function get_test_score() {
     local score=$1
@@ -115,9 +114,11 @@ function grade_submission() {
             test_result=0
         fi
 
-        record="$record,$test_result"
+        record="$record, $test_result"
 
     done
+
+    record="$record, $score"
 
     echo "$score" > "$out_dir/$name.score"
     echo "$record" >> "$global_scores"
