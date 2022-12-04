@@ -104,16 +104,16 @@ function grade_submission() {
     # compile here
     compile_out=$(gcc "$src_file" -Wall --output "$test_folder"/bank 2>&1)
     local compile_stat=$?
-    local compile_ok=$(echo $compile_out | wc -l)
+    compile_out_len=$(echo $compile_out | wc -c)
 
     if [ $compile_stat -ne 0 ]; then
         echo "Warning: could not compile $(basename $src_file): Return code: $compile_stat" | tee -a "$global_log" "$local_log"
-        echo "$compile_out" | tee -a "$local_log"
+        echo "$compile_out" >> "$local_log"
         record="$record, N"
 
-    elif [[ $compile_ok -ne 0  ]]; then
-        echo "Warning: $(basename $src_file) compiled with some warnings"
-        echo "$compile_out" | tee -a "$local_log"
+    elif [[ $compile_out_len -gt 5  ]]; then
+        echo "Warning: $(basename $src_file) compiled with $compile_out_len lines of warnings"
+        echo "$compile_out" >> "$local_log"
         record="$record, N"
     else
         echo "Info: Code compiled successfully" | tee -a "$local_log" "$global_log"
@@ -136,13 +136,15 @@ function grade_submission() {
 
     done
 
-    if [[ $compile_ok -ne 0  ]]; then
-        local penalized_score=$(echo "scale=2; $test_result - $penalty" | bc -l)
-        if [[ $(echo "scale=2; $penalized_score < 0" | bc -l) -eq 1 ]]; then
+    if [[ $compile_out_len -gt 1  ]]; then
+        local penalized_score=$(echo "scale=2; $score - $penalty" | bc -l)
+        echo "Original score: $score" | tee -a "$local_log"
+        if [[ $(echo "scale=4; $penalized_score < 0" | bc -l) -eq 1 ]]; then
             score=0
         else
             score=$penalized_score
         fi
+        echo "Penalized score: $score" | tee -a "$local_log"
     fi
 
     record="$record, $score"
