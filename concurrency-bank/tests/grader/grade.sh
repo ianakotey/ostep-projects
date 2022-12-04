@@ -137,6 +137,14 @@ function grade_submission() {
             score=$(echo "scale=2; $test_result + $score" | bc -l)
         else
             test_result=0
+
+            for f in "$test_folder"/tests-out/$n.*; do
+
+                echo -e "\n$(basename "$f")" >> "$out_dir/$name.output"
+                cat "$f" >> "$out_dir/$name.output"
+                echo -e "\n" >> "$out_dir/$name.output"
+
+            done
         fi
 
         record="$record, $test_result"
