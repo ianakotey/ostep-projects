@@ -356,11 +356,16 @@ class TransactionTester:
                     f"Transaction record being verified: {transaction_record}"
                 )
                 return False
+
             # Test 5: Check for correct balance after withdrawal
             case (
                 TransactionData(TransactionType.WITHDRAWAL, _) as td,
                 tr,
-            ) if 0 <= td.amount < balance and tr.balance_after != balance - td.amount:
+            ) if (0 <= td.amount < balance and tr.balance_after != balance - td.amount) ^ (td.amount == 0 and tr.balance_after is not None):
+
+                if td.amount == 0 and tr.balance_after is None: # should never run, but here we are
+                    return True
+
                 logging.error("Test 5 failed!")
                 logging.info(f"current balance: {balance}")
                 logging.info(f"Transaction under test: {transaction}")
