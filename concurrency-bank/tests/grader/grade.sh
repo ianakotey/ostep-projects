@@ -23,9 +23,10 @@ fi
 global_log="$out_dir/all.log"
 global_scores="$out_dir/all.csv"
 
-penalty=10
+compile_penalty=10
+late_penalty=20
 
-csv_header="name, Compiled correctly, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19, Total"
+csv_header="name, Compiled correctly, Late, Test 1, Test 2, Test 3, Test 4, Test 5, Test 6, Test 7, Test 8, Test 9, Test 10, Test 11, Test 12, Test 13, Test 14, Test 15, Test 16, Test 17, Test 18, Test 19, Total"
 
 function get_test_score() {
     local score=$1
@@ -120,6 +121,12 @@ function grade_submission() {
         record="$record, Y"
     fi
 
+    if [[ $name == *LATE* ]]; then
+        record="$record, Y"
+    else
+        record="$record, N"
+    fi
+
     for n in {1..19}; do
 
         run_test "$test_folder" $n "$name" "$local_log"
@@ -136,15 +143,21 @@ function grade_submission() {
 
     done
 
-    if [[ $compile_out_len -gt 1  ]]; then
-        local penalized_score=$(echo "scale=2; $score - $penalty" | bc -l)
-        echo "Original score: $score" | tee -a "$local_log"
-        if [[ $(echo "scale=4; $penalized_score < 0" | bc -l) -eq 1 ]]; then
-            score=0
-        else
-            score=$penalized_score
-        fi
-        echo "Penalized score: $score" | tee -a "$local_log"
+    echo "Original score: $score" | tee -a "$local_log"
+
+    if [[ $compile_out_len -gt 1 && $compile_stat -eq 0 ]]; then
+        echo "Penalty for compilation with warnings: -$late_penalty"
+        score=$(echo "scale=2; $score - $compile_penalty" | bc -l)
+    fi
+
+    if [[ $name == *LATE* ]]; then
+        echo "Penalty for late submission: -$late_penalty"
+        score=$(echo "scale=2; $score - $late_penalty" | bc -l)
+    fi
+
+    # reset score to 0 if negative
+    if [[ $(echo "scale=4; $score < 0" | bc -l) -eq 1 ]]; then
+        score=0
     fi
 
     record="$record, $score"
