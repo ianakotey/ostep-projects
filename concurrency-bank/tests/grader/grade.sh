@@ -154,8 +154,8 @@ function grade_submission() {
     echo "Original score: $score" | tee -a "$local_log"
 
     if [[ $compile_out_len -gt 1 && $compile_stat -eq 0 ]]; then
-        echo "Penalty for compilation with warnings: -$late_penalty"
-        score=$(echo "scale=2; $score - $late_penalty" | bc -l)
+        echo "Penalty for compilation with warnings: -$compile_penalty"
+        score=$(echo "scale=2; $score - $compile_penalty" | bc -l)
     fi
 
     if [[ $name == *LATE* ]]; then
