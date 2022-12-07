@@ -191,7 +191,7 @@ class TransactionTester:
         ) as test_runner:  #
             logging.debug(f"Beginning test...")
             try:
-                out, _ = test_runner.communicate(timeout=20)
+                out, _ = test_runner.communicate(timeout=200)
                 out_lines = out.splitlines()
                 match len(out_lines):
                     case 0 | 1:
