@@ -1,7 +1,11 @@
 
 # echo $0
 # exit 1
-SCRIPT_PATH=$(dirname "$(realpath -s "$0")")
+
+# SCRIPT_PATH=$(dirname "$(realpath -s "$0")")
+old_path=$(pwd -P)
+SCRIPT_PATH=$( cd "$(dirname "$0")" ; pwd -P )
+
 o="/tmp/"
 f1="mixed_trans_18_1.txt"
 f2="mixed_trans_18_2.txt"
