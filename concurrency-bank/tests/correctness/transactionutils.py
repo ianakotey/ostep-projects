@@ -363,7 +363,7 @@ class TransactionTester:
                 tr,
             ) if (0 <= td.amount < balance and tr.balance_after != balance - td.amount) ^ (td.amount == 0 and tr.balance_after is not None):
 
-                if td.amount == 0 and tr.balance_after is None: # should never run, but here we are
+                if td.amount == 0 and tr.balance_after in {None, balance}: # should never run, but here we are
                     return True
 
                 logging.error("Test 5 failed!")
