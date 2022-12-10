@@ -177,7 +177,8 @@ class TransactionTester:
 
     def run_and_test_output(
         self, start_balance: int, husband: Path, wife: Path,
-        custom_check: Callable[[list[TransactionRecord]], bool] = lambda _: True
+        custom_check: Callable[[list[TransactionRecord]],
+                               bool] = lambda _: True
     ) -> bool:
         husband_queue = deque(filter(None, TransactionData.from_file(husband)))
         wife_queue = deque(filter(None, TransactionData.from_file(wife)))
@@ -210,7 +211,6 @@ class TransactionTester:
                 logging.critical("Timed out on test")
                 return False
 
-
         logging.debug(
             f"test: {self.binary} {start_balance} {husband} {wife} completed sucessfully"
         )
@@ -223,12 +223,12 @@ class TransactionTester:
         husband_queue: deque[TransactionData],
         wife_queue: deque[TransactionData],
         out_lines: Sequence[str],
-        custom_check: Callable[[list[TransactionRecord]], bool] = lambda _: True
+        custom_check: Callable[[list[TransactionRecord]],
+                               bool] = lambda _: True
 
     ) -> bool:
 
         balance: int = start_balance
-
 
         if opening_match := re.match(opening_balance_patern, out_lines[0]):
 
@@ -313,83 +313,77 @@ class TransactionTester:
             )
             return False
 
-        match (transaction, transaction_record):
-            # Test 1: Amount match
-            case (td, tr) if td.amount != tr.amount:
-                logging.error("Test 1 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                return False
+        # Todo: refactor if-else ladder
+        td, tr = transaction, transaction_record
 
+        if td.amount != tr.amount:
+            logging.error("Test 1 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            return False
+
+        elif td.amount < 0 and tr.balance_after is not None:
             # Test 2: Negative amounts were rejected
-            case (td, tr) if td.amount < 0 and tr.balance_after is not None:
-                logging.error("Test 2 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                return False
+            logging.error("Test 2 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            return False
 
-            # Test 3: No underflow allowed
-            case (
-                TransactionData(TransactionType.WITHDRAWAL, _) as td,
-                tr,
-            ) if td.amount > balance and tr.balance_after is not None:
-                logging.error("Test 3 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                return False
+        elif td.type == TransactionType.WITHDRAWAL and td.amount > balance and tr.balance_after is not None:
+            # Test 3: No withdrawal underflow allowed
+            logging.error("Test 3 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            return False
 
+        elif td.amount < 0 and tr.balance_after is not None:
             # Test 4: Negative transactions not allowed
-            case (td, tr) if td.amount < 0 and tr.balance_after is not None:
-                logging.error("Test 4 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                return False
+            logging.error("Test 4 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            return False
 
+        elif td.type == TransactionType.WITHDRAWAL \
+                and (0 <= td.amount < balance and tr.balance_after != balance - td.amount):
             # Test 5: Check for correct balance after withdrawal
-            case (
-                TransactionData(TransactionType.WITHDRAWAL, _) as td,
-                tr,
-            ) if (0 <= td.amount < balance and tr.balance_after != balance - td.amount) ^ (td.amount == 0 and tr.balance_after is not None):
 
-                if td.amount == 0 and tr.balance_after in {None, balance}: # should never run, but here we are
-                    return True
+            # Special case for withdrawal: 0 amount can either succeed or be rejected
+            if td.amount == 0 and tr.balance_after in {None, balance}:
+                return True
 
-                logging.error("Test 5 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                logging.info(
-                    f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
-                return False
+            logging.error("Test 5 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            logging.info(
+                f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
+            return False
 
+        elif td.type == TransactionType.DEPOSIT and tr.balance_after != balance + td.amount:
             # Test 6: Check for correct balance after deposit
-            case (
-                TransactionData(TransactionType.DEPOSIT, a) as td,
-                tr,
-            ) if a > 0 and tr.balance_after != balance + td.amount:
-                logging.error("Test 6 failed!")
-                logging.info(f"current balance: {balance}")
-                logging.info(f"Transaction under test: {transaction}")
-                logging.info(
-                    f"Transaction record being verified: {transaction_record}"
-                )
-                logging.info(
-                    f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
-                return False
+            logging.error("Test 6 failed!")
+            logging.info(f"current balance: {balance}")
+            logging.info(f"Transaction under test: {transaction}")
+            logging.info(
+                f"Transaction record being verified: {transaction_record}"
+            )
+            logging.info(
+                f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
+            return False
 
         return True
 
