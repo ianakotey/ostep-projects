@@ -2,7 +2,7 @@
 
 import argparse
 from pathlib import Path
-from typing import Sequence
+from typing import List, Sequence, Tuple
 import transactionutils
 
 import logging
@@ -21,17 +21,17 @@ parser.add_argument("-c", "--custom", action="store_true")
 args = parser.parse_args()
 
 
-files: tuple[Path,...] = tuple(
+files: Tuple[Path,...] = tuple(
     map(lambda file: file.absolute(), (args.binary, args.husband, args.wife))
 )
 
 
-def verify_concurrency_nop(output: list[transactionutils.TransactionRecord]) -> bool:
+def verify_concurrency_nop(output: List[transactionutils.TransactionRecord]) -> bool:
     logging.debug("Using null concurrency test")
     return True
 
 
-def verify_concurrency(output: list[transactionutils.TransactionRecord]) -> bool:
+def verify_concurrency(output: List[transactionutils.TransactionRecord]) -> bool:
     """
     Assert that a series of transactions were interleaved
     """
