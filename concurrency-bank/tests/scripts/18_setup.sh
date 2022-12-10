@@ -12,12 +12,12 @@ f2="mixed_trans_18_2.txt"
 
 if ! [[ -w $o$f1 ]]; then
     echo "Generating random file for testing"
-    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f1 -o $o -n 10000000 -r "\-30000:30000" -pe 0.30 -pw 0.20
+    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f1 -o $o -n 1000000 -r "\-30000:30000" -pe 0.30 -pw 0.20
 fi
 
 if ! [[ -w $o$f2 ]]; then
     echo "Generating random file for testing"
-    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f2 -o $o -n 10000000 -r "\-30000:30000" -pe 0.30 -pw 0.50
+    "$SCRIPT_PATH/../correctness/generate_file.py" -f $f2 -o $o -n 1000000 -r "\-30000:30000" -pe 0.30 -pw 0.50
 fi
 
 ln -sf $o$f1 /tmp/Husband.txt
