@@ -373,7 +373,13 @@ class TransactionTester:
                 f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
             return False
 
-        elif td.type == TransactionType.DEPOSIT and tr.balance_after != balance + td.amount:
+        elif td.type == TransactionType.DEPOSIT \
+            and ( td.amount >= 0 and tr.balance_after != balance + td.amount):
+            
+            # Special case for deposit: 0 amount can either succeed or be rejected
+            if td.amount == 0 and tr.balance_after in {None, balance}:
+                return True
+            
             # Test 6: Check for correct balance after deposit
             logging.error("Test 6 failed!")
             logging.info(f"current balance: {balance}")
