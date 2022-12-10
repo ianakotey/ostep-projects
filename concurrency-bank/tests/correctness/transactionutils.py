@@ -126,15 +126,15 @@ class TransactionTester:
         if not source.is_file():
             raise ValueError("Source file cannot be a directory!")
 
-        match binary_location:
-            case None:
-                binary_location = source.parent
-            case loc:
-                if not loc.exists():
-                    raise ValueError("Binary output location does not exist")
-                if not loc.is_dir():
-                    raise ValueError(
-                        "Binary output location cannot be a file!")
+
+        if binary_location is None:
+            binary_location = source.parent
+
+        if not binary_location.exists():
+            raise ValueError("Binary output location does not exist")
+        if not binary_location.is_dir():
+            raise ValueError(
+                "Binary output location cannot be a file!")
 
         with Popen(
             [
@@ -192,20 +192,21 @@ class TransactionTester:
         ) as test_runner:  #
             logging.debug(f"Beginning test...")
             try:
+
                 out, _ = test_runner.communicate(timeout=200)
                 out_lines = out.splitlines()
-                match len(out_lines):
-                    case 0 | 1:
-                        logging.error(
-                            f"Invalid number of output lines: {len(out_lines)}"
-                        )
+
+                if (num_lines := len(out_lines)) <= 1:
+                    logging.error(
+                        f"Invalid number of output lines: {num_lines}"
+                    )
+                    return False
+                else:
+                    if not self.verify_transactions(
+                        start_balance, husband_queue, wife_queue, out_lines,
+                        custom_check
+                    ):
                         return False
-                    case _:
-                        if not self.verify_transactions(
-                            start_balance, husband_queue, wife_queue, out_lines,
-                            custom_check
-                        ):
-                            return False
 
             except TimeoutExpired:
                 logging.critical("Timed out on test")
@@ -243,30 +244,29 @@ class TransactionTester:
 
         for transaction_record in out_queue:
 
-            match transaction_record:
-                case trans_r if trans_r.user == "Husband":
-                    try:
-                        current_trans = husband_queue.popleft()
-                    except IndexError:
-                        return False
-
-                case trans_r if trans_r.user == "Wife":
-                    try:
-                        current_trans = wife_queue.popleft()
-                    except IndexError:
-                        return False
-
-                case _:  # Somehow, an unknown user may show up
+            if transaction_record.user == "Husband":
+                try:
+                    current_trans = husband_queue.popleft()
+                except IndexError:
                     return False
 
+            elif transaction_record.user == "Wife":
+                try:
+                    current_trans = wife_queue.popleft()
+                except IndexError:
+                    return False
+
+            else:  # Somehow, an unknown user may show up
+                return False
+
             if not self.verify_transaction(
-                balance, trans_r, current_trans
+                balance, transaction_record, current_trans
             ):
                 return False
             else:
                 balance = (
-                    trans_r.balance_after
-                    if trans_r.balance_after is not None
+                    transaction_record.balance_after
+                    if transaction_record.balance_after is not None
                     else balance
                 )
 
@@ -425,17 +425,17 @@ class TransactionTester:
         ) as file:
             for _ in range(n_lines):
 
-                match randint(0, 100):
-                    case x if x < empty_thresh:
-                        file.write("\n")
-                    case x if x > withdraw_thresh:
-                        file.write(
-                            f"withdraw {randint(amount_range.start, amount_range.stop)}\n"
-                        )
-                    case _:
-                        file.write(
-                            f"deposit {randint(amount_range.start, amount_range.stop)}\n"
-                        )
+                probability = randint(0,100)
+                if probability < empty_thresh:
+                    file.write("\n")
+                elif probability > withdraw_thresh:
+                    file.write(
+                        f"withdraw {randint(amount_range.start, amount_range.stop)}\n"
+                    )
+                else:
+                    file.write(
+                        f"deposit {randint(amount_range.start, amount_range.stop)}\n"
+                    )
 
             return Path(file.name)
 
