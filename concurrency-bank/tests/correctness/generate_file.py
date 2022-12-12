@@ -18,16 +18,21 @@ parser.add_argument( "-f", "--file_name", type=str, default=None, required=False
 args = parser.parse_args()
 
 f_args = {
-    "n_lines": args.n_lines,
-    "amount_range": range( *list( map( lambda x: int(x), args.amount_range.lstrip('\\').split( ":" ) ) ) ),
-    "perc_empty": args.perc_empty,
-    "perc_withdraw": args.perc_withdraw,
-    "perc_withdraw": args.perc_withdraw,
+    "n_lines":
+        args.n_lines,
+    "amount_range":
+        range( *list( map( lambda x: int( x ), args.amount_range.lstrip( '\\' ).split( ":" ) ) ) ),
+    "perc_empty":
+        args.perc_empty,
+    "perc_withdraw":
+        args.perc_withdraw,
+    "perc_withdraw":
+        args.perc_withdraw,
 }
 
 file = transactionutils.TransactionTester.create_test_file( **f_args )
 
-out_file = args.output_path / (args.file_name if args.file_name else file.name)
+out_file = args.output_path / ( args.file_name if args.file_name else file.name )
 shutil.move( file, out_file )
 
 print( out_file )
