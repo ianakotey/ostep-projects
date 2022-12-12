@@ -294,104 +294,32 @@ class TransactionTester:
         transaction: TransactionData,
     ) -> bool:
 
-        if transaction_record.amount != transaction.amount:
-            logging.error("Transaction amount mismatch")
-            logging.info(f"Current balance: {balance}")
-            logging.info(f"Amount in record: {transaction_record.amount}")
-            logging.info(f"Amount in transaction: {transaction.amount}")
-            logging.info(f"Transaction: {transaction}")
-            logging.info(f"Record: {transaction_record}")
-            return False
-
-        if (
-            transaction_record.amount < 0
-            and transaction_record.balance_after != None
-        ):
-            logging.error(
-                f"Transaction amount negative ({transaction_record.amount}) yet not declined"
-                f"\nRecord: {transaction_record}"
-            )
-            return False
-
-        # Todo: refactor if-else ladder
         td, tr = transaction, transaction_record
 
-        if td.amount != tr.amount:
-            logging.error("Test 1 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
+        if td.amount == tr.amount and any( (               # <-- check whether amounts tally
+                td.amount < 0 and tr.balance_after is None,
+               # reject negative transactions ⬇
+                td.type == TransactionType.WITHDRAWAL and any( (
+                    ( td.amount == 0 and tr.balance_after is None ),
+               # reject 0 value withdrawal allowed ⬇
+                    ( td.amount > balance and tr.balance_after == None ),
+               # process transaction properly ⬇
+                    ( 0 <= td.amount <= balance and tr.balance_after == balance - td.amount ),
+                ) ),
+                td.type == TransactionType.DEPOSIT and any( (
+               # reject 0 value deposit allowed ⬇
+                    ( td.amount == 0 and tr.balance_after is None ),
+               # process transaction properly ⬇
+                    ( td.amount >= 0 and tr.balance_after == balance + td.amount ),
+                ) ) ) ):
+            return True
+
+        else:
+            logging.error( "Invalid output found" )
+            logging.info( f"current balance: {balance}" )
+            logging.info( f"Transaction under test: {transaction}" )
+            logging.info( f"Transaction record being verified: {transaction_record}" )
             return False
-
-        elif td.amount < 0 and tr.balance_after is not None:
-            # Test 2: Negative amounts were rejected
-            logging.error("Test 2 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
-            return False
-
-        elif td.type == TransactionType.WITHDRAWAL and td.amount > balance and tr.balance_after is not None:
-            # Test 3: No withdrawal underflow allowed
-            logging.error("Test 3 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
-            return False
-
-        elif td.amount < 0 and tr.balance_after is not None:
-            # Test 4: Negative transactions not allowed
-            logging.error("Test 4 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
-            return False
-
-        elif td.type == TransactionType.WITHDRAWAL \
-                and (0 <= td.amount < balance and tr.balance_after != balance - td.amount):
-            # Test 5: Check for correct balance after withdrawal
-
-            # Special case for withdrawal: 0 amount can either succeed or be rejected
-            if td.amount == 0 and tr.balance_after in {None, balance}:
-                return True
-
-            logging.error("Test 5 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
-            logging.info(
-                f"Expected {balance - td.amount} after withdrawal: found {tr.balance_after}")
-            return False
-
-        elif td.type == TransactionType.DEPOSIT \
-            and ( td.amount >= 0 and tr.balance_after != balance + td.amount):
-            
-            # Special case for deposit: 0 amount can either succeed or be rejected
-            if td.amount == 0 and tr.balance_after in {None, balance}:
-                return True
-            
-            # Test 6: Check for correct balance after deposit
-            logging.error("Test 6 failed!")
-            logging.info(f"current balance: {balance}")
-            logging.info(f"Transaction under test: {transaction}")
-            logging.info(
-                f"Transaction record being verified: {transaction_record}"
-            )
-            logging.info(
-                f"Expected {balance + td.amount} after deposit: found {tr.balance_after}")
-            return False
-
-        return True
 
     def test_random_input(
         self,
